@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>微信授权设置</title>
+  <style>
+    .form,
+    form {
+      max-width: 320px;
+      margin: 36px auto;
+      border: 2px dashed #ccc;
+      text-align: center;
+      padding: 16px;
+    }
+
+    .button,
+    button {
+      display: inline-block;
+      padding: 8px 16px;
+      border-width: 0;
+      background-color: #080;
+      color: #fff;
+      border-radius: 3px;
+      box-shadow: 0 6px 12px -6px #080;
+    }
+
+    pre {
+      padding: 8px;
+      border: 1px solid #ccc;
+      background-color: #eee;
+      ;
+      border-radius: 3px;
+      box-shadow: 0 3px 6px -3px #888;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="form">
+    <p>
+      授权完成后跳转的地址 http://test.demo.cn/test.success
+      <br>
+      /_oauth2_/oauth2/sign_in?rd=授权完成后跳转的地址
+    </p>
+    <a class="button" href="/_oauth2_/oauth2/sign_in?rd=http://test.demo.cn/test.success">微信登陆授权A</a>
+    <br /><br />
+    <a id="auth" class="button">检测是否登陆</a>
+    <a id="user" class="button">用户信息</a>
+  </div>
+  <div class="form">
+    <pre></pre>
+  </div>
+  <script>
+    function check() {
+      return fetch("http://test.demo.cn/_oauth2_/oauth2/auth", {
+        credentials: 'include'
+      }).then(resp => {
+        if (resp.status >= 300) {
+          throw resp.text()
+        }
+        return resp
+      }).then(resp => {
+        let user = resp.headers.get("X-Auth-Request-User")
+        let email = resp.headers.get("X-Auth-Request-Email")
+        // let vaules = resp.headers.values()
+        document.getElementsByTagName("pre")[0].textContent = user + "\r\n" + email
+        alert('已经登陆！')
+      }).catch(e => {
+        return e.then(text => {
+          throw new Error(text)
+        })
+      })
+    }
+    function user() {
+      return fetch("http://test.demo.cn/_oauth2_/oauth2/userinfo", {
+        credentials: 'include'
+      }).then(resp => {
+        if (resp.status >= 300) {
+          throw resp.text()
+        }
+        return resp.json()
+      }).then(data => {
+        alert(JSON.stringify(data))
+      }).catch(e => {
+        return e.then(text => {
+          throw new Error(text)
+        })
+      })
+    }
+    document.getElementById("auth").addEventListener("click", () => {
+      check().catch(e => {
+        alert(e.message)
+      })
+    })
+    document.getElementById("user").addEventListener("click", () => {
+      user().catch(e => {
+        alert(e.message)
+      })
+    })
+  </script>
+</body>
+
+</html>
